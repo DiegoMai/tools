@@ -1,0 +1,15 @@
+En el ámbito de certificados y webservices, un cacert (a veces cacerts o CA certificate) es el archivo que contiene los certificados raíz y de autoridad de certificación (CA) en los que confía una aplicación o un entorno.
+
+Es un almacén de confianza (truststore), no tu certificado personal.
+
+Su función es verificar que el certificado presentado por el servidor webservice (o cliente, si aplica) esté firmado por una CA válida y reconocida.
+
+En Java, típicamente se maneja como cacerts.jks, que es un Java Keystore preconfigurado que trae el JDK/JRE y que guarda certificados de autoridades de confianza.
+
+Cuando un webservice usa HTTPS o mutual TLS, la JVM valida contra este archivo que el certificado del otro extremo sea confiable.
+
+
+👉 En resumen: el cacert es la lista de certificados de confianza (CA) que usa tu aplicación para validar la autenticidad de los certificados presentados por webservices u otros servicios SSL/TLS.
+
+¿Querés que te muestre cómo agregar tu propio certificado a un cacerts.jks con keytool?
+
