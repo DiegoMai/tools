@@ -1,46 +1,35 @@
-Const SEC_IGNORE_CERT_CN_INVALID   = &H1000
-Const SEC_IGNORE_CERT_DATE_INVALID = &H2000
-Const SEC_IGNORE_UNKNOWN_CA        = &H0100
-Const SEC_IGNORE_ALL               = SEC_IGNORE_CERT_CN_INVALID + SEC_IGNORE_CERT_DATE_INVALID + SEC_IGNORE_UNKNOWN_CA
-
-Dim req
-Set req = CreateObject("WinHttp.WinHttpRequest.5.1")
-req.Open "GET", "https://tuservidor/api", False
-req.Option(4) = SEC_IGNORE_ALL   ' ignora validaciones SSL
-req.Send
-MsgBox req.ResponseText
------------------------------------------------------------
 Option Explicit
 
-Const SEC_IGNORE_CERT_CN_INVALID   = &H1000
-Const SEC_IGNORE_CERT_DATE_INVALID = &H2000
-Const SEC_IGNORE_UNKNOWN_CA        = &H0100
-Const SEC_IGNORE_ALL               = SEC_IGNORE_CERT_CN_INVALID + SEC_IGNORE_CERT_DATE_INVALID + SEC_IGNORE_UNKNOWN_CA
+Dim shell, exec, output, json, unity_id, version
 
-Dim req, url, body
+Set shell = CreateObject("WScript.Shell")
 
-url = "https://tuservidor/endpoint"
-body = "{""usuario"":""demo"",""clave"":""demo123""}"
+' Ejecuta curl
+Set exec = shell.Exec("cmd /c curl -s -i -H ""Authorization: Bearer XXXX"" -X POST ""https://...""")
 
-Set req = CreateObject("WinHttp.WinHttpRequest.5.1")
+output = ""
+Do While Not exec.StdOut.AtEndOfStream
+    output = output & exec.StdOut.ReadLine() & vbCrLf
+Loop
 
-' Abrir conexión
-req.Open "POST", url, False
+' Extrae solo la parte JSON (asumiendo que viene después de cabeceras HTTP)
+Dim pos
+pos = InStr(output, "{")
+If pos > 0 Then
+    json = Mid(output, pos)
+Else
+    WScript.Echo "No se encontró JSON en la respuesta"
+    WScript.Quit
+End If
 
-' Ignorar validaciones SSL (⚠️ sólo pruebas)
-req.Option(4) = SEC_IGNORE_ALL
+' Parseo simple usando ScriptControl
+Dim sc
+Set sc = CreateObject("MSScriptControl.ScriptControl")
+sc.Language = "JScript"
+sc.AddCode "function parseJson(){return " & json & ";}"
 
-' Especificar el certificado cliente
-' Podés usar Subject o Thumbprint, por ejemplo:
-' req.SetClientCertificate("CURRENT_USER\MY\Nombre de Certificado")
-req.SetClientCertificate("LOCAL_MACHINE\MY\<THUMBPRINT_DEL_CERTIFICADO>")
+unity_id = sc.Eval("parseJson().unity_id")
+version  = sc.Eval("parseJson().version")
 
-' Headers
-req.SetRequestHeader "Content-Type", "application/json"
-
-' Enviar body
-req.Send body
-
-' Ver respuesta
-WScript.Echo "HTTP " & req.Status & " - " & req.StatusText
-WScript.Echo req.ResponseText
+WScript.Echo "unity_id: " & unity_id
+WScript.Echo "version: " & version
