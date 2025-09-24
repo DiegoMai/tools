@@ -1,0 +1,46 @@
+Const SEC_IGNORE_CERT_CN_INVALID   = &H1000
+Const SEC_IGNORE_CERT_DATE_INVALID = &H2000
+Const SEC_IGNORE_UNKNOWN_CA        = &H0100
+Const SEC_IGNORE_ALL               = SEC_IGNORE_CERT_CN_INVALID + SEC_IGNORE_CERT_DATE_INVALID + SEC_IGNORE_UNKNOWN_CA
+
+Dim req
+Set req = CreateObject("WinHttp.WinHttpRequest.5.1")
+req.Open "GET", "https://tuservidor/api", False
+req.Option(4) = SEC_IGNORE_ALL   ' ignora validaciones SSL
+req.Send
+MsgBox req.ResponseText
+-----------------------------------------------------------
+Option Explicit
+
+Const SEC_IGNORE_CERT_CN_INVALID   = &H1000
+Const SEC_IGNORE_CERT_DATE_INVALID = &H2000
+Const SEC_IGNORE_UNKNOWN_CA        = &H0100
+Const SEC_IGNORE_ALL               = SEC_IGNORE_CERT_CN_INVALID + SEC_IGNORE_CERT_DATE_INVALID + SEC_IGNORE_UNKNOWN_CA
+
+Dim req, url, body
+
+url = "https://tuservidor/endpoint"
+body = "{""usuario"":""demo"",""clave"":""demo123""}"
+
+Set req = CreateObject("WinHttp.WinHttpRequest.5.1")
+
+' Abrir conexión
+req.Open "POST", url, False
+
+' Ignorar validaciones SSL (⚠️ sólo pruebas)
+req.Option(4) = SEC_IGNORE_ALL
+
+' Especificar el certificado cliente
+' Podés usar Subject o Thumbprint, por ejemplo:
+' req.SetClientCertificate("CURRENT_USER\MY\Nombre de Certificado")
+req.SetClientCertificate("LOCAL_MACHINE\MY\<THUMBPRINT_DEL_CERTIFICADO>")
+
+' Headers
+req.SetRequestHeader "Content-Type", "application/json"
+
+' Enviar body
+req.Send body
+
+' Ver respuesta
+WScript.Echo "HTTP " & req.Status & " - " & req.StatusText
+WScript.Echo req.ResponseText
